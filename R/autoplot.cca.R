@@ -140,10 +140,18 @@ if(getRversion() >= "2.15.1") {
     
      #species_scores <- subset(obj, Score == "species"
      
-    focal_species_plot_info <- geom_text(data = obj[which(obj$Label %in% focal_species), ], aes(x=Dim1, y=Dim2), label = focal_species)
-    nonFocal_species_plot_info <- geom_point(data = subset(obj, !(Label %in% focal_species) & Score == "species"), aes(x=Dim1, y=Dim2))
-    focal_environment_plot_info <- geom_segment(data = obj[which(obj$Label %in% focal_environment), ], aes(x = 0, y = 0, xend=Dim1, yend=Dim2), colour = "black")
-    nonFocal_environment_plot_info <- geom_segment(data = subset(obj, !(Label %in% focal_environment) & Score == "biplot"), aes(x=0, y=0, xend=Dim1, yend=Dim2), colour="grey")
+    focal_species_plot_info <- geom_text(data = obj[which(obj$Label %in% focal_species), ], 
+                                                aes(x=Dim1, y=Dim2), label = focal_species)
+    nonFocal_species_plot_info <- geom_point(data = subset(obj, !(Label %in% focal_species) & Score == "species"), 
+                                                aes(x=Dim1, y=Dim2))
+    focal_environment_plot_info <- geom_segment(data = obj[which(obj$Label %in% focal_environment), ], 
+                                                aes(x = 0, y = 0, xend=Dim1, yend=Dim2), 
+                                                arrow = arrow(length = unit(0.2, "cm")),colour = "black")
+    nonFocal_environment_plot_info <- geom_segment(data = subset(obj, !(Label %in% focal_environment) & Score == "biplot"), 
+                                                aes(x=0, y=0, xend=Dim1, yend=Dim2), 
+                                                arrow = arrow(length = unit(0.2, "cm")), colour="grey") +
+                                                geom_text(data = subset(obj, !(Label %in% focal_environment) & Score == "biplot"),
+                                                aes(x=Dim1*1.1, y=Dim2*1.1))
     
     # final plot
     plt + focal_species_plot_info + nonFocal_species_plot_info + focal_environment_plot_info + nonFocal_environment_plot_info + theme_bw()
