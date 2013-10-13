@@ -133,28 +133,39 @@ if(getRversion() >= "2.15.1") {
     anova_env <- fortify(anova_environment)
     focal_environment <- rownames(anova_env)[which(anova_env$"Pr(>F)" < alpha)]
     #LAYERS <- levels(obj$Score)
-    #dimlabels <- attr(obj, "dimlabels")
+    dimlabels <- attr(obj, "dimlabels")
     #obj <- obj[obj$Score %in% layers, , drop = FALSE]
     ## skeleton layer
     plt <- ggplot()
     
      #species_scores <- subset(obj, Score == "species"
      
-    focal_species_plot_info <- geom_text(data = obj[which(obj$Label %in% focal_species), ], 
-                                                aes(x=Dim1, y=Dim2), label = focal_species)
-    nonFocal_species_plot_info <- geom_point(data = subset(obj, !(Label %in% focal_species) & Score == "species"), 
-                                                aes(x=Dim1, y=Dim2))
+    focal_species_plot_info <- geom_segment(data = obj[which(obj$Label %in% focal_species), ],
+                                                aes(x=0, y=0, xend=Dim1, yend=Dim2),
+                                                arrow = arrow(length = unit(0.2, "cm")), colour = "black", linetype = "dashed")
+    focal_species_text <- geom_text(data = obj[which(obj$Label %in% focal_species), ], 
+                                                aes(x=Dim1*1.1, y=Dim2*1.1), label = focal_species)
+    nonFocal_species_plot_info <- geom_segment(data = subset(obj, !(Label %in% focal_species) & Score == "species"), 
+                                                aes(x=0, y = 0, xend = Dim1, yend = Dim2),
+                                                arrow = arrow(length = unit(0.2, "cm")), colour = "grey", linetype = "dashed")
     focal_environment_plot_info <- geom_segment(data = obj[which(obj$Label %in% focal_environment), ], 
                                                 aes(x = 0, y = 0, xend=Dim1, yend=Dim2), 
                                                 arrow = arrow(length = unit(0.2, "cm")),colour = "black")
+    focal_environment_text <- geom_text(data = obj[which(obj$Label %in% focal_environment), ],
+                                                aes(x=Dim1*1.1, y=Dim2*1.1), label = focal_environment)
     nonFocal_environment_plot_info <- geom_segment(data = subset(obj, !(Label %in% focal_environment) & Score == "biplot"), 
                                                 aes(x=0, y=0, xend=Dim1, yend=Dim2), 
-                                                arrow = arrow(length = unit(0.2, "cm")), colour="grey") +
-                                                geom_text(data = subset(obj, !(Label %in% focal_environment) & Score == "biplot"),
-                                                aes(x=Dim1*1.1, y=Dim2*1.1))
+                                                arrow = arrow(length = unit(0.2, "cm")), colour="grey")
+    site_plot_info <- geom_text(data = subset(obj, Score == "sites"), 
+                                                aes(x=Dim1, y = Dim2, label = Label), colour="black")
     
     # final plot
-    plt + focal_species_plot_info + nonFocal_species_plot_info + focal_environment_plot_info + nonFocal_environment_plot_info + theme_bw()
+    plt + focal_species_plot_info + focal_species_text + nonFocal_species_plot_info + focal_environment_plot_info + 
+        focal_environment_text + nonFocal_environment_plot_info + site_plot_info + xlab(dimlabels[1]) + ylab(dimlabels[2]) +
+        coord_fixed() + theme_bw()
     }
+    
+    #mul <- vegan:::ordiArrowMul(obj[want, , drop = FALSE ])
+            obj[want, c("Dim1","Dim2")] <- mul * obj[want, c("Dim1","Dim2")]
 
    
