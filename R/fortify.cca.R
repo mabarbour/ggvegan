@@ -35,7 +35,10 @@
             obs <- 0
         obs
     }
-    scrs <- scores(model, display = c("sp", "wa", "lc", "bp", "cn"),
+    
+    # write function for "sig_axes"
+    
+    scrs <- scores(model, display = c("sp", "wa", "lc", "bp", "cn"), choices = 1:length(sig_axes),
                    ...)
     rnam <- lapply(scrs, rownames)
     take <- !sapply(rnam, is.null)
@@ -51,3 +54,4 @@
     names(fdf)[1:2] <- paste0("Dim", 1:2)
     fdf
 }
+### Want to add more than 2 axes.  What about the ones that are significant?
