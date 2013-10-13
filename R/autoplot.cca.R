@@ -128,10 +128,12 @@ if(getRversion() >= "2.15.1") {
 
 ### My idea is to create a customizable plot that highlights the significant environmental variables and species of interest from an rda() analysis.  
 # focal_environment
-`autoplot.focused.cca` <- function(object, anova_environment, focal_species, alpha = 0.05){
+`autoplot.focused.cca` <- function(object, focal_species, species_names = focal_species, species_fontface = "italic", environment_names = focal_environment, site_color = "grey", alpha = 0.05){
     obj <- fortify(object)
-    anova_env <- fortify(anova_environment)
-    focal_environment <- rownames(anova_env)[which(anova_env$"Pr(>F)" < alpha)]
+    
+    anova_env <- anova(object, by = "margin")
+    anova_env_fortified <- fortify(anova_env)
+    focal_environment <- rownames(anova_env_fortified)[which(anova_env_fortified$"Pr(>F)" < alpha)]
     #LAYERS <- levels(obj$Score)
     dimlabels <- attr(obj, "dimlabels")
     #obj <- obj[obj$Score %in% layers, , drop = FALSE]
@@ -144,7 +146,7 @@ if(getRversion() >= "2.15.1") {
                                                 aes(x=0, y=0, xend=Dim1, yend=Dim2),
                                                 arrow = arrow(length = unit(0.2, "cm")), colour = "black", linetype = "dashed")
     focal_species_text <- geom_text(data = obj[which(obj$Label %in% focal_species), ], 
-                                                aes(x=Dim1*1.1, y=Dim2*1.1), label = focal_species)
+                                                aes(x=Dim1*1.1, y=Dim2*1.1), label = species_names, fontface = species_fontface)
     nonFocal_species_plot_info <- geom_segment(data = subset(obj, !(Label %in% focal_species) & Score == "species"), 
                                                 aes(x=0, y = 0, xend = Dim1, yend = Dim2),
                                                 arrow = arrow(length = unit(0.2, "cm")), colour = "grey", linetype = "dashed")
@@ -152,20 +154,28 @@ if(getRversion() >= "2.15.1") {
                                                 aes(x = 0, y = 0, xend=Dim1, yend=Dim2), 
                                                 arrow = arrow(length = unit(0.2, "cm")),colour = "black")
     focal_environment_text <- geom_text(data = obj[which(obj$Label %in% focal_environment), ],
-                                                aes(x=Dim1*1.1, y=Dim2*1.1), label = focal_environment)
+                                                aes(x=Dim1*1.1, y=Dim2*1.1), label = environment_names)
     nonFocal_environment_plot_info <- geom_segment(data = subset(obj, !(Label %in% focal_environment) & Score == "biplot"), 
                                                 aes(x=0, y=0, xend=Dim1, yend=Dim2), 
                                                 arrow = arrow(length = unit(0.2, "cm")), colour="grey")
     site_plot_info <- geom_text(data = subset(obj, Score == "sites"), 
-                                                aes(x=Dim1, y = Dim2, label = Label), colour="black")
+                                                aes(x=Dim1, y = Dim2, label = Label), colour=site_color)
+    major_axis_lines <- geom_hline(yintercept = 0, color = "dark grey")
+    minor_axis_lines <- geom_vline(xintercept = 0, color = "dark grey")
+    
+    autoplot.focused.cca_plot_theme <- theme_bw() + theme(axis.text=element_text(colour="black",size=16), 
+                                                legend.key=element_rect(colour="black"), panel.grid=element_blank(),
+                                                axis.title.x=element_text(size=16, vjust=-0.5), 
+                                                axis.title.y=element_text(size=16, vjust=0.25), 
+                                                panel.border=element_blank(), axis.ticks=element_blank()) +
+                                                theme(axis.line=element_line(color="black"))
     
     # final plot
     plt + focal_species_plot_info + focal_species_text + nonFocal_species_plot_info + focal_environment_plot_info + 
         focal_environment_text + nonFocal_environment_plot_info + site_plot_info + xlab(dimlabels[1]) + ylab(dimlabels[2]) +
-        coord_fixed() + theme_bw()
+        coord_fixed() + major_axis_lines + minor_axis_lines + trait_community_plot_theme
     }
     
-    #mul <- vegan:::ordiArrowMul(obj[want, , drop = FALSE ])
-            obj[want, c("Dim1","Dim2")] <- mul * obj[want, c("Dim1","Dim2")]
+ 
 
    
