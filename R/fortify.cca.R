@@ -28,7 +28,8 @@
 ##'
 ##' sol <- cca(dune ~ A1 + Management, data = dune.env)
 ##' head(fortify(sol))
-`fortify.cca` <- function(model, data, ...) {
+`fortify.cca` <- function(model, data, alpha = 0.05, ...) {
+    # added default alpha of 0.05 for statistical analysis
     scrLen <- function(x) {
         obs <- nrow(x)
         if(is.null(obs))
@@ -36,10 +37,13 @@
         obs
     }
     
-    # write function for "sig_axes"
+    # Identify significant axes of variation
+    model_axis_anova <- anova(model, by = "axis")
+    sig_axis_count <- length(which(model_axis_anova$"Pr(>F)" < alpha))
     
-    scrs <- scores(model, display = c("sp", "wa", "lc", "bp", "cn"), choices = 1:length(sig_axes),
-                   ...)
+    scrs <- scores(model, display = c("sp", "wa", "lc", "bp", "cn"), 
+                    choices = 1:sig_axis_count,
+                    ...) # added 'choices' to display the number of significant RDA axes for further plotting and interpretation
     rnam <- lapply(scrs, rownames)
     take <- !sapply(rnam, is.null)
     rnam <- unlist(rnam[take], use.names = FALSE)
@@ -50,8 +54,8 @@
     lens <- sapply(scrs, scrLen)
     fdf$Score <- factor(rep(names(lens), times = lens))
     fdf$Label <- rnam
-    attr(fdf, "dimlabels") <- names(fdf)[1:2]
-    names(fdf)[1:2] <- paste0("Dim", 1:2)
+    attr(fdf, "dimlabels") <- names(fdf)[1:sig_axis_count] # extended the names to include all significant axes
+    names(fdf)[1:sig_axis_count] <- paste0("Dim", 1:sig_axis_count) # extended the names to include all significant axes
     fdf
 }
-### Want to add more than 2 axes.  What about the ones that are significant?
+
